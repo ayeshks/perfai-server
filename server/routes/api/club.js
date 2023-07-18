@@ -18,23 +18,36 @@ router.get('/', async (req, res) => {
   
   let clubIdCounter = 0;
 // Create a new club and link it to a club owner
-router.post('/clubs', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { clubName, location, description, clubOwnerId } = req.body;
-    const clubCollection = await loadClubCollection();
-    
-    // Create a new club
+    const clubDataCollection = await loadClubDataCollection();
+    const clubOwnersCollection = await loadClubOwnersCollection();
+
+    const existingClub = await clubDataCollection.findOne({ clubOwnerId });
+
+    if (existingClub) {
+      return res.status(400).json({ success: false, message: 'Club already exists for the given club owner' });
+    }
+
+    const clubOwner = await clubOwnersCollection.findOne({ clubOwnerId });
+
+    if (!clubOwner) {
+      return res.status(400).json({ success: false, message: 'Invalid club owner ID' });
+    }
+
     const newClub = {
+      clubId: String(++clubIdCounter),
       clubName,
       location,
       description,
       clubOwnerId,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
-    await clubCollection.insertOne(newClub);
-    res.status(201).json({ success: true, message: 'Club created successfully' });
+    await clubDataCollection.insertOne(newClub);
+    res.status(201).json({ success: true, clubId: newClub.clubOwnerId, message:'Club created successfully'});
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Failed to create club' });

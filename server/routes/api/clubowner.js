@@ -18,21 +18,26 @@ router.get('/', async (req, res) => {
   });
 
 // Create a new club owner
-router.post('/clubOwners', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { OfirstName, OlastName, email, phoneNumber } = req.body;
-    const clubOwnerCollection = await loadClubOwnerCollection();
-  
-    // Create a new club owner
+    const clubowners = await loadClubOwnerCollection();
+
+    // Get the count of existing club owners
+    const count = await clubowners.countDocuments();
+
+    const clubOwnerId = `100${count + 1}`; // Generate the club owner ID
+
     const newClubOwner = {
+      clubOwnerId,
       OfirstName,
       OlastName,
       email,
       phoneNumber
     };
 
-    await clubOwnerCollection.insertOne(newClubOwner);
-    res.status(201).json({ success: true, message: 'Club owner created successfully' });
+    await clubowners.insertOne(newClubOwner);
+    res.status(201).json({ success: true });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Failed to create club owner' });
