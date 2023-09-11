@@ -8,6 +8,7 @@ router.get('/', async (req, res) => {
   const users = await loadUserCollection();
   res.send(await users.find({}).toArray());
 });
+
 //Post User
 router.post('/', async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
